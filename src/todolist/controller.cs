@@ -47,7 +47,7 @@ public class TodoController : ControllerBase
   [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTodo(int id)
     {
-        var success = await _todoService.DeleteAsync(id);
-        return success ? NoContent() : NotFound();
+      var success = await _todoService.DeleteAsync(id);
+      return success ? NoContent() : NotFound();
     }
 }

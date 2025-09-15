@@ -51,6 +51,24 @@ public class UsersController : ControllerBase
       return StatusCode(500, "An error occurred while processing your request");
     }
   }
-  
 
+  [HttpPost]
+  public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto)
+  {
+    if (!ModelState.IsValid)
+      return BadRequest(ModelState);
+
+    var user = await _userService.CreateUserAsync(createUserDto);
+    return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+  }
+
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> DeleteUser(Guid id)
+  {
+    var deleted = await _userService.DeleteUserAsync(id);
+    if (!deleted)
+      return NotFound($"User with ID {id} not found");
+
+    return NoContent();
+  }
 }
