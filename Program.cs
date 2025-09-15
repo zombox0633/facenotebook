@@ -1,8 +1,6 @@
 using DotNetEnv;
-using Microsoft.EntityFrameworkCore;
-using todolist.extension;
-using user.data;
-using user.extension;
+using extensions;
+
 
 Env.Load();
 
@@ -18,23 +16,10 @@ builder.Services.AddControllers();
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
     throw new InvalidOperationException("DATABASE_URL not found in environment variables");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
 // Extensions
-builder.Services.AddTodoApplicationServices();
-builder.Services.AddUserApplicationServices();
-
-// CORS 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader();
-    });
-});
+builder.Services.AddDatabaseServices(connectionString);
+builder.Services.AddApplicationServices();
+builder.Services.AddCorsPolicy();
 
 var app = builder.Build();
 
@@ -58,28 +43,5 @@ app.MapControllers();
 // Custom endpoints
 app.MapGet("/hello/", () => "hello world 😺");
 app.MapGet("/hello/{name}", (string name) => $"hello {name} ❤️");
-
-// Database creation on startup
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
-    {
-        var canConnect = await context.Database.CanConnectAsync();
-        if (canConnect)
-        {
-            Console.WriteLine("✅ Database connection successful!");
-        }
-        else
-        {
-            Console.WriteLine("❌ Cannot connect to database");
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"❌ Database connection failed: {ex.Message}");
-        throw;
-    }
-}
 
 app.Run();
