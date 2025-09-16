@@ -2,7 +2,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace user.dto;
 
-public class CreateUserDto
+//------------------ Request ---------------------------
+public class LoginRequest
+{
+  public string Email { get; set; } = string.Empty;
+  public string Password { get; set; } = string.Empty;
+}
+
+public class CreateUserRequest
 {
   [Required]
   [StringLength(50)]
@@ -18,19 +25,19 @@ public class CreateUserDto
   public string Password { get; set; } = string.Empty;
 }
 
-public class UpdateNameDto
-{
-  [Required]
-  [StringLength(50)]
-  public string Name { get; set; } = string.Empty;
+//------------------ Response -------------------------
 
+public class UserResponse
+{
+  public Guid Id { get; set; }
+  public string Name { get; set; } = string.Empty;
+  public string Email { get; set; } = string.Empty;
+  public DateTime CreatedAt { get; set; }
+  public DateTime UpdatedAt { get; set; }
 }
 
-public class UserResponseDto
+public class TokenResponse
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+  public string AccessToken { get; set; } = string.Empty;
+  public string RefreshToken { get; set; } = string.Empty;
 }

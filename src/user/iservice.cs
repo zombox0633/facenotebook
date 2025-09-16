@@ -6,10 +6,8 @@ namespace user.iservice;
 
 public interface IUserService
 {
-    Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
-    Task<UserResponseDto?> GetUserByIdAsync(Guid id);
-    Task<UserResponseDto> CreateUserAsync(CreateUserDto createUserDto);
+    Task<IEnumerable<UserResponse>> GetAllUsersAsync();
+    Task<UserResponse?> GetUserByIdAsync(Guid id);
+    Task<UserResponse> CreateUserAsync(CreateUserRequest createUserDto);
     Task<bool> DeleteUserAsync(Guid id);
-    // Task<bool> UserExistsAsync(Guid id);
-    // Task<bool> EmailExistsAsync(string email);
 }

@@ -19,6 +19,11 @@ public class User
   [StringLength(150)]
   public string Password { get; set; } = string.Empty;
 
+  [StringLength(200)]
+  public string? RefreshToken { get; set; } = string.Empty;
+
+  public DateTime? RefreshTokenExpiryTime { get; set; }
+
   public DateTime CreatedAt { get; set; }
   public DateTime UpdatedAt { get; set; }
 

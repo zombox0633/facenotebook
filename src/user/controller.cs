@@ -18,7 +18,7 @@ public class UsersController : ControllerBase
   }
 
   [HttpGet]
-  public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
+  public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
   {
     try
     {
@@ -33,7 +33,7 @@ public class UsersController : ControllerBase
   }
 
   [HttpGet("{id}")]
-  public async Task<ActionResult<UserResponseDto>> GetUser(Guid id)
+  public async Task<ActionResult<UserResponse>> GetUser(Guid id)
   {
     try
     {
@@ -53,7 +53,7 @@ public class UsersController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto)
+  public async Task<ActionResult<UserResponse>> CreateUser(CreateUserRequest createUserDto)
   {
     if (!ModelState.IsValid)
       return BadRequest(ModelState);
