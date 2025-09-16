@@ -12,6 +12,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+//JWT Configuration
+builder.Configuration["Jwt:SecretKey"] = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? 
+    throw new InvalidOperationException("JWT_SECRET_KEY not found");
+
 // Database Configuration
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
     throw new InvalidOperationException("DATABASE_URL not found in environment variables");
