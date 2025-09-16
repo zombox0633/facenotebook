@@ -20,3 +20,7 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 
 ## check IP Address
 ipconfig
+
+## Token
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
+dotnet add package System.IdentityModel.Tokens.Jwt
