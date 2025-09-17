@@ -2,13 +2,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace user.dto;
 
-//------------------ Request ---------------------------
+//--------------------------- Authentication ----------------------------
 public class LoginRequest
 {
+  [Required]
+  [StringLength(50)]
+  [EmailAddress]
   public string Email { get; set; } = string.Empty;
+
+  [Required]
+  [StringLength(50)]
   public string Password { get; set; } = string.Empty;
 }
 
+public class RefreshTokenRequest
+{
+  [Required]
+  public string RefreshToken { get; set; } = string.Empty;
+}
+
+public class TokenResponse
+{
+  public string AccessToken { get; set; } = string.Empty;
+  public string RefreshToken { get; set; } = string.Empty;
+}
+
+//------------------------- User ------------------------------------------
 public class CreateUserRequest
 {
   [Required]
@@ -25,8 +44,6 @@ public class CreateUserRequest
   public string Password { get; set; } = string.Empty;
 }
 
-//------------------ Response -------------------------
-
 public class UserResponse
 {
   public Guid Id { get; set; }
@@ -36,8 +53,3 @@ public class UserResponse
   public DateTime UpdatedAt { get; set; }
 }
 
-public class TokenResponse
-{
-  public string AccessToken { get; set; } = string.Empty;
-  public string RefreshToken { get; set; } = string.Empty;
-}
