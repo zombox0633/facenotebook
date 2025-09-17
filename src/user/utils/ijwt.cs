@@ -6,9 +6,11 @@ namespace utils.ijwt;
 public interface IJwtService
 {
   string GenerateAccessToken(User user);
-  // string GenerateRefreshToken();
-  // DateTime GetAccessTokenExpiry();
-  // DateTime GetRefreshTokenExpiry();
-  // bool ValidateToken(string token);
-  // ClaimsPrincipal GetPrincipalFromToken(string token);
+  string GenerateRefreshToken();
+
+  //--------------------- TokenExpiry -------------------
+  ClaimsPrincipal ExtractUserFromExpiredToken(string expiredToken);
+  DateTime GetAccessTokenExpiry();
+  DateTime GetRefreshTokenExpiry();
+
 }
