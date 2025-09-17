@@ -71,7 +71,7 @@ public class ApplicationDbContext : DbContext
         {
             if (entry.Entity is User user)
             {
-                user.UpdatedAt = DateTime.UtcNow;
+                DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             }
         }
 
