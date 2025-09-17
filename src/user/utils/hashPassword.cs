@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Konscious.Security.Cryptography;
 using utils.ihashPassword;
 
-namespace user.hashPassword;
+namespace utils.hashPassword;
 
 public class HashPassword: IHashPassword
 {
