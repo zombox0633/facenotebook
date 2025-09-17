@@ -4,6 +4,7 @@ using user.dto;
 using user.iservice;
 using user.model;
 using utils.ihashPassword;
+using utils.ijwt;
 
 namespace user.service;
 
@@ -11,27 +12,100 @@ public class UserService : IUserService
 {
   private readonly ApplicationDbContext _context;
   private readonly IHashPassword _hashPassword;
+  private readonly IJwtService _jwtService;
 
-  public UserService(ApplicationDbContext context, IHashPassword hashPassword)
+  public UserService(ApplicationDbContext context, IHashPassword hashPassword, IJwtService jwt)
   {
     _context = context;
     _hashPassword = hashPassword;
+    _jwtService = jwt;
   }
-  
-  //------------------------- User ----------------------------------
+
+  //--------------------------- Authentication ----------------------------
+  public async Task<TokenResponse?> LoginAsync(LoginRequest loginRequest)
+  {
+    var user = await _context.Users
+      .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
+
+    if (user == null)
+      return null;
+
+    var IsValidPassword = await _hashPassword.VerifyPasswordAsync(loginRequest.Password, user.Password);
+    if (!IsValidPassword)
+      return null;
+
+    var accessToken = _jwtService.GenerateAccessToken(user);
+    var refreshToken = _jwtService.GenerateRefreshToken();
+    var expiryTime = _jwtService.GetRefreshTokenExpiry();
+
+    user.RefreshToken = refreshToken;
+    user.RefreshTokenExpiryTime = DateTime.SpecifyKind(expiryTime, DateTimeKind.Unspecified);
+    user.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+    await _context.SaveChangesAsync();
+
+    return new TokenResponse
+    {
+      AccessToken = accessToken,
+      RefreshToken = refreshToken
+    };
+  }
+
+  public async Task<bool> LogoutAsync(string refreshToken)
+  {
+    var user = await _context.Users
+      .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+    if (user == null)
+      return false;
+
+    user.RefreshToken = null;
+    user.RefreshTokenExpiryTime = null;
+    user.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+
+    await _context.SaveChangesAsync();
+    return true;
+  }
+
+  public async Task<TokenResponse?> RefreshTokenAsync(string refreshToken)
+  {
+    var user = await _context.Users
+      .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+    if (user == null || user.RefreshTokenExpiryTime <= DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified))
+      return null;
+
+    var newAccessToken = _jwtService.GenerateAccessToken(user);
+    var newRefreshToken = _jwtService.GenerateRefreshToken();
+    var expiryTime = _jwtService.GetRefreshTokenExpiry();
+
+    user.RefreshToken = newRefreshToken;
+    user.RefreshTokenExpiryTime = DateTime.SpecifyKind(expiryTime, DateTimeKind.Unspecified);
+    user.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+    await _context.SaveChangesAsync();
+
+    return new TokenResponse
+    {
+      AccessToken = newAccessToken,
+      RefreshToken = newRefreshToken
+    };
+  }
+
+
+
+  //--------------------------- User ----------------------------------
   public async Task<IEnumerable<UserResponse>> GetAllUsersAsync()
   {
     var users = await _context.Users
-    .OrderBy(u => u.CreatedAt)
-    .ToListAsync();
+      .OrderBy(u => u.CreatedAt)
+      .ToListAsync();
 
-    return users.Select(MapToResponseDto);
+    return users.Select(MapToResponse);
   }
 
-  public async Task<UserResponse?> GetUserByIdAsync(Guid id)
+  public async Task<UserResponse?> GetCurrentUserAsync(Guid id)
   {
     var user = await _context.Users.FindAsync(id);
-    return user == null ? null : MapToResponseDto(user);
+    return user == null ? null : MapToResponse(user);
   }
 
   public async Task<UserResponse> CreateUserAsync(CreateUserRequest createUserDto)
@@ -52,6 +126,8 @@ public class UserService : IUserService
       Name = createUserDto.Name,
       Email = createUserDto.Email,
       Password = hashedPassword,
+      RefreshToken = null,
+      RefreshTokenExpiryTime = null,
       CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
       UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
     };
@@ -59,7 +135,7 @@ public class UserService : IUserService
     _context.Users.Add(user);
     await _context.SaveChangesAsync();
 
-    return MapToResponseDto(user);
+    return MapToResponse(user);
   }
 
   public async Task<bool> DeleteUserAsync(Guid id)
@@ -77,7 +153,7 @@ public class UserService : IUserService
 
   //--------------------------- Helper ------------------------------
 
-  private static UserResponse MapToResponseDto(User user)
+  private static UserResponse MapToResponse(User user)
   {
     return new UserResponse
     {

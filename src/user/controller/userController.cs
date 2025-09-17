@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using user.dto;
 using user.iservice;
 
-namespace user.controller;
+namespace controller.userController;
 
 [ApiController]
-[Route("api/user")]
+[Route("api/users")]
 public class UsersController : ControllerBase
 {
   private readonly IUserService _userService;
@@ -18,6 +19,7 @@ public class UsersController : ControllerBase
   }
 
   [HttpGet]
+  [Authorize]
   public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
   {
     try
@@ -33,11 +35,12 @@ public class UsersController : ControllerBase
   }
 
   [HttpGet("{id}")]
+  [Authorize]
   public async Task<ActionResult<UserResponse>> GetUser(Guid id)
   {
     try
     {
-      var user = await _userService.GetUserByIdAsync(id);
+      var user = await _userService.GetCurrentUserAsync(id);
       if (user == null)
       {
         return NotFound($"User with ID {id} not found");
@@ -63,6 +66,7 @@ public class UsersController : ControllerBase
   }
 
   [HttpDelete("{id}")]
+  [Authorize]
   public async Task<IActionResult> DeleteUser(Guid id)
   {
     var deleted = await _userService.DeleteUserAsync(id);
