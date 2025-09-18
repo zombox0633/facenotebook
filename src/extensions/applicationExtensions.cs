@@ -9,10 +9,10 @@ using todolist.service;
 using user.data;
 using user.iservice;
 using user.service;
-using utils.ihashPassword;
-using utils.hashPassword;
-using utils.ijwt;
-using utils.jwt;
+using helper.ihashPassword;
+using helper.hashPassword;
+using helper.ijwt;
+using helper.jwt;
 
 namespace extensions;
 
