@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Konscious.Security.Cryptography;
-using utils.ihashPassword;
+using helper.ihashPassword;
 
-namespace utils.hashPassword;
+namespace helper.hashPassword;
 
 public class HashPassword: IHashPassword
 {

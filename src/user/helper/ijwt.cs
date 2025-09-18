@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using user.model;
 
-namespace utils.ijwt;
+namespace helper.ijwt;
 
 public interface IJwtService
 {

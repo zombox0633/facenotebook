@@ -4,9 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using user.model;
-using utils.ijwt;
+using helper.ijwt;
 
-namespace utils.jwt;
+namespace helper.jwt;
 
 public class JwtService : IJwtService
 {

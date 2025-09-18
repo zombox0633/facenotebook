@@ -1,4 +1,4 @@
-namespace utils.ihashPassword;
+namespace helper.ihashPassword;
 
 public interface IHashPassword
 {
