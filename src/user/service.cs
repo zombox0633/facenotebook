@@ -3,8 +3,8 @@ using user.data;
 using user.dto;
 using user.iservice;
 using user.model;
-using utils.ihashPassword;
-using utils.ijwt;
+using helper.ihashPassword;
+using helper.ijwt;
 
 namespace user.service;
 
@@ -112,11 +112,11 @@ public class UserService : IUserService
   {
     if (await EmailExistsAsync(createUserDto.Email))
     {
-      throw new InvalidCastException("Email already exists");
+      throw new InvalidOperationException("Email already exists");
     }
     if (!_hashPassword.IsValidPassword(createUserDto.Password))
     {
-      throw new ArgumentException("Password must contain at least 8 characters with uppercase, lowercase, and numbers");
+      throw new InvalidOperationException("Password must contain at least 8 characters with uppercase, lowercase, and numbers");
     }
 
     var hashedPassword = await _hashPassword.HashPasswordAsync(createUserDto.Password);
