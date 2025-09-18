@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using user.dto;
 using user.iservice;
+using utils.apiFormatResponse;
 
 namespace controller.userController;
 
@@ -20,12 +21,12 @@ public class UsersController : ControllerBase
 
   [HttpGet]
   [Authorize]
-  public async Task<ActionResult<IEnumerable<UserResponse>>> GetUsers()
+  public async Task<ActionResult<ApiFormatResponse<IEnumerable<UserResponse>>>> GetUsers()
   {
     try
     {
       var users = await _userService.GetAllUsersAsync();
-      return Ok(users);
+      return apiFormatResponse.Success(users);
     }
     catch (Exception ex)
     {
@@ -36,17 +37,15 @@ public class UsersController : ControllerBase
 
   [HttpGet("{id}")]
   [Authorize]
-  public async Task<ActionResult<UserResponse>> GetUser(Guid id)
+  public async Task<ActionResult<ApiFormatResponse<UserResponse>>> GetUserById(Guid id)
   {
     try
     {
       var user = await _userService.GetCurrentUserAsync(id);
       if (user == null)
-      {
-        return NotFound($"User with ID {id} not found");
-      }
+      return NotFound($"User with ID {id} not found");
 
-      return Ok(user);
+      return apiFormatResponse.Success(user);
     }
     catch (Exception ex)
     {
@@ -56,23 +55,23 @@ public class UsersController : ControllerBase
   }
 
   [HttpPost]
-  public async Task<ActionResult<UserResponse>> CreateUser(CreateUserRequest createUserDto)
+  public async Task<ActionResult<ApiFormatResponse<UserResponse>>> CreateUser(CreateUserRequest createUserDto)
   {
     if (!ModelState.IsValid)
-      return BadRequest(ModelState);
+      throw new InvalidOperationException("Invalid user data");
 
     var user = await _userService.CreateUserAsync(createUserDto);
-    return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+    return apiFormatResponse.Success(user, 201, "User created successfully");
   }
 
   [HttpDelete("{id}")]
   [Authorize]
-  public async Task<IActionResult> DeleteUser(Guid id)
+  public async Task<ActionResult<ApiFormatResponse<object?>>> DeleteUser(Guid id)
   {
     var deleted = await _userService.DeleteUserAsync(id);
     if (!deleted)
-      return NotFound($"User with ID {id} not found");
+      throw new KeyNotFoundException($"User with ID {id} not found");
 
-    return NoContent();
+    return apiFormatResponse.Success<object?>(null, 204, "User deleted successfully");
   }
 }
