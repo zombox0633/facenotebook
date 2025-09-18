@@ -41,9 +41,10 @@ if (app.Environment.IsDevelopment())
 // Middleware
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRouting();
+
 
 // Map controllers
 app.MapControllers();
