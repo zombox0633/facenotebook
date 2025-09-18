@@ -11,9 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
-// builder.Services.AddAuthorization();
 
-//JWT Configuration
+// JWT Configuration
 builder.Configuration["Jwt:SecretKey"] = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? 
     throw new InvalidOperationException("JWT_SECRET_KEY not found");
 
@@ -28,6 +27,9 @@ builder.Services.AddApplicationServices();
 builder.Services.AddCorsPolicy();
 
 var app = builder.Build();
+
+// Middleware
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
