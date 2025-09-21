@@ -82,4 +82,10 @@ public static class ApplicationExtensions
 
     return services;
   }
+
+  //------------------------ Configure Error Handler Middleware -----------------------
+  public static IApplicationBuilder AddErrorHandler(this IApplicationBuilder builder)
+  {
+    return builder.UseMiddleware<ErrorHandlerMiddleware>();
+  }
 }

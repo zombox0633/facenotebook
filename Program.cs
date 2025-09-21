@@ -29,7 +29,7 @@ builder.Services.AddCorsPolicy();
 var app = builder.Build();
 
 // Middleware
-app.UseMiddleware<ErrorHandlerMiddleware>();
+app.AddErrorHandler();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
