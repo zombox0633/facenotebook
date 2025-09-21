@@ -13,6 +13,7 @@ using helper.ihashPassword;
 using helper.hashPassword;
 using helper.ijwt;
 using helper.jwt;
+using System.Text.Json;
 
 namespace extensions;
 
@@ -32,30 +33,63 @@ public static class ApplicationExtensions
   }
 
   //------------------------ Configure JWT Authentication ---------------------------------
-  public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+ public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+{
+  services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+  .AddJwtBearer(options =>
   {
-    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-      options.TokenValidationParameters = new TokenValidationParameters
+      ValidateIssuerSigningKey = true,
+      IssuerSigningKey = new SymmetricSecurityKey(
+        Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)
+      ),
+      ValidateIssuer = true,
+      ValidIssuer = "facenotebook_app",
+      ValidateAudience = true,
+      ValidAudience = "earth_ten",
+      ValidateLifetime = true,
+      ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+      OnChallenge = context =>
       {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(
-          Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"]!)
-        ),
-        ValidateIssuer = true,
-        ValidIssuer = "facenotebook_app",
-        ValidateAudience = true,
-        ValidAudience = "earth_ten",
-        ValidateLifetime = true, // เช็ค token หมดอายุ
-        ClockSkew = TimeSpan.Zero // ไม่เผื่อเวลา
-      };
-    });
+        context.HandleResponse();
+        
+        context.Response.StatusCode = 401;
+        context.Response.ContentType = "application/json";
+        
+        var response = new
+        {
+          status = 401,
+          path = context.Request.Path.Value,
+          timestamp = DateTime.UtcNow,
+          message = "Invalid or missing authentication token"
+        };
 
-    services.AddAuthorization();
+        var jsonOptions = new JsonSerializerOptions
+        {
+          PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+          WriteIndented = true
+        };
 
-    return services;
-  }
+        return context.Response.WriteAsync(JsonSerializer.Serialize(response, jsonOptions));
+      },
+
+      OnAuthenticationFailed = context =>
+      {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerEvents>>();
+        logger.LogWarning("JWT Authentication failed: {Error}", context.Exception.Message);
+        return Task.CompletedTask;
+      }
+    };
+  });
+
+  services.AddAuthorization();
+  return services;
+}
 
 
   //------------------------ Configure database connection --------------------------------
