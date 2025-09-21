@@ -82,13 +82,11 @@ public class JwtService : IJwtService
 
   public DateTime GetAccessTokenExpiry()
   {
-    var utcTime = DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes);
-    return DateTime.SpecifyKind(utcTime, DateTimeKind.Unspecified);
+    return DateTime.UtcNow.AddMinutes(_accessTokenExpirationMinutes);
   }
 
   public DateTime GetRefreshTokenExpiry()
   {
-    var utcTime = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
-    return DateTime.SpecifyKind(utcTime, DateTimeKind.Unspecified);
+    return DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
   }
 }

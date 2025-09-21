@@ -48,15 +48,15 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(e => e.RefreshTokenExpiryTime)
                 .HasColumnName("refreshtokenexpirytime")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamptz");
 
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("createdat")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamptz");
 
             entity.Property(e => e.UpdatedAt)
                 .HasColumnName("updatedat")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamptz");
             
         });
     }
@@ -71,7 +71,7 @@ public class ApplicationDbContext : DbContext
         {
             if (entry.Entity is User user)
             {
-                DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                user.UpdatedAt = DateTime.UtcNow;
             }
         }
 

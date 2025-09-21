@@ -23,44 +23,28 @@ public class UsersController : ControllerBase
   [Authorize]
   public async Task<ActionResult<ApiFormatResponse<IEnumerable<UserResponse>>>> GetUsers()
   {
-    try
-    {
-      var users = await _userService.GetAllUsersAsync();
-      return apiFormatResponse.Success(users);
-    }
-    catch (Exception ex)
-    {
-      _logger.LogError(ex, "Error occurred while getting users");
-      return StatusCode(500, "An error occurred while processing your request");
-    }
+    var users = await _userService.GetAllUsersAsync();
+    return apiFormatResponse.Success(users);
   }
 
   [HttpGet("{id}")]
   [Authorize]
   public async Task<ActionResult<ApiFormatResponse<UserResponse>>> GetUserById(Guid id)
   {
-    try
-    {
-      var user = await _userService.GetCurrentUserAsync(id);
-      if (user == null)
-      return NotFound($"User with ID {id} not found");
+    var user = await _userService.GetCurrentUserAsync(id);
+    if (user == null)
+    throw new KeyNotFoundException($"User with ID {id} not found");
 
-      return apiFormatResponse.Success(user);
-    }
-    catch (Exception ex)
-    {
-      _logger.LogError(ex, "Error occurred while getting user {UserId}", id);
-      return StatusCode(500, "An error occurred while processing your request");
-    }
+    return apiFormatResponse.Success(user);
   }
 
   [HttpPost]
-  public async Task<ActionResult<ApiFormatResponse<UserResponse>>> CreateUser(CreateUserRequest createUserDto)
+  public async Task<ActionResult<ApiFormatResponse<UserResponse>>> CreateUser(CreateUserRequest createUser)
   {
     if (!ModelState.IsValid)
-      throw new InvalidOperationException("Invalid user data");
+      return apiFormatResponse.ValidationError<UserResponse>(ModelState, "/api/users");
 
-    var user = await _userService.CreateUserAsync(createUserDto);
+    var user = await _userService.CreateUserAsync(createUser);
     return apiFormatResponse.Success(user, 201, "User created successfully");
   }
 

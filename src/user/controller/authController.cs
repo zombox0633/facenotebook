@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using user.dto;
 using user.iservice;
+using utils.apiFormatResponse;
 
 namespace controller.authController;
 
@@ -19,44 +20,46 @@ public class AuthController : ControllerBase
   }
 
   [HttpPost("login")]
-  public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+  public async Task<ActionResult<ApiFormatResponse<TokenResponse>>> Login([FromBody] LoginRequest loginRequest) 
   {
-    try
-    {
-      if (!ModelState.IsValid)
-        return BadRequest(ModelState);
+    if (!ModelState.IsValid)
+      return apiFormatResponse.ValidationError<TokenResponse>(ModelState, "/api/auth/login");
 
-      var result = await _userService.LoginAsync(loginRequest);
+    var result = await _userService.LoginAsync(loginRequest);
 
-      if (result == null)
-        return Unauthorized(new { message = "Invalid email or password" });
+    if (result == null)
+      throw new UnauthorizedAccessException("Invalid email or password");
 
-      _logger.LogInformation("User {Email} logged in successfully", loginRequest.Email);
-      return Ok(result);
-    }
-    catch (Exception ex)
-    {
-      _logger.LogError(ex, "Error occurred during login for {Email}", loginRequest.Email);
-      return StatusCode(500, "An error occurred while processing your request");
-    }
+    _logger.LogInformation("User {Email} logged in successfully", loginRequest.Email);
+    return apiFormatResponse.Success(result, 200, "Login successful");
   }
 
   [HttpPost("refresh")]
-  public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest refreshRequest)
+  public async Task<ActionResult<ApiFormatResponse<TokenResponse>>> RefreshToken([FromBody] RefreshTokenRequest refreshRequest)
   {
+    if (!ModelState.IsValid)
+      return apiFormatResponse.ValidationError<TokenResponse>(ModelState, "/api/auth/refresh");
+    
     var result = await _userService.RefreshTokenAsync(refreshRequest.RefreshToken);
 
     if (result == null)
-      return Unauthorized(new { message = "Invalid refresh token" });
+      throw new UnauthorizedAccessException("Invalid or expired refresh token");
 
-    return Ok(result);
+    return apiFormatResponse.Success(result, 200, "Token refreshed successfully");
   }
 
   [HttpPost("logout")]
   [Authorize]
-  public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest refreshRequest)
+  public async Task<ActionResult<ApiFormatResponse<object?>>> Logout([FromBody] RefreshTokenRequest refreshRequest)
   {
-    await _userService.LogoutAsync(refreshRequest.RefreshToken);
-    return Ok(new { message = "Logged out successfully" });
+    if (!ModelState.IsValid)
+      return apiFormatResponse.ValidationError<object?>(ModelState, "/api/auth/logout");
+
+    var success = await _userService.LogoutAsync(refreshRequest.RefreshToken);
+
+    if (!success)
+      throw new InvalidOperationException("Logout failed - invalid refresh token");
+    
+    return apiFormatResponse.Success<object?>(null, 200, "Logged out successfully");
   }
 }

@@ -39,8 +39,8 @@ public class UserService : IUserService
     var expiryTime = _jwtService.GetRefreshTokenExpiry();
 
     user.RefreshToken = refreshToken;
-    user.RefreshTokenExpiryTime = DateTime.SpecifyKind(expiryTime, DateTimeKind.Unspecified);
-    user.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+    user.RefreshTokenExpiryTime = expiryTime;
+    user.UpdatedAt = DateTime.UtcNow;
     await _context.SaveChangesAsync();
 
     return new TokenResponse
@@ -60,7 +60,7 @@ public class UserService : IUserService
 
     user.RefreshToken = null;
     user.RefreshTokenExpiryTime = null;
-    user.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+    user.UpdatedAt = DateTime.UtcNow;
 
     await _context.SaveChangesAsync();
     return true;
@@ -71,7 +71,7 @@ public class UserService : IUserService
     var user = await _context.Users
       .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
-    if (user == null || user.RefreshTokenExpiryTime <= DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified))
+    if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
       return null;
 
     var newAccessToken = _jwtService.GenerateAccessToken(user);
@@ -79,8 +79,8 @@ public class UserService : IUserService
     var expiryTime = _jwtService.GetRefreshTokenExpiry();
 
     user.RefreshToken = newRefreshToken;
-    user.RefreshTokenExpiryTime = DateTime.SpecifyKind(expiryTime, DateTimeKind.Unspecified);
-    user.UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+    user.RefreshTokenExpiryTime = expiryTime;
+    user.UpdatedAt = DateTime.UtcNow;
     await _context.SaveChangesAsync();
 
     return new TokenResponse
@@ -89,8 +89,6 @@ public class UserService : IUserService
       RefreshToken = newRefreshToken
     };
   }
-
-
 
   //--------------------------- User ----------------------------------
   public async Task<IEnumerable<UserResponse>> GetAllUsersAsync()
@@ -110,10 +108,10 @@ public class UserService : IUserService
 
   public async Task<UserResponse> CreateUserAsync(CreateUserRequest createUserDto)
   {
-    if (await EmailExistsAsync(createUserDto.Email))
-    {
-      throw new InvalidOperationException("Email already exists");
-    }
+    // if (await EmailExistsAsync(createUserDto.Email))
+    // {
+    //   throw new InvalidOperationException("Email already exists");
+    // }
     if (!_hashPassword.IsValidPassword(createUserDto.Password))
     {
       throw new InvalidOperationException("Password must contain at least 8 characters with uppercase, lowercase, and numbers");
@@ -128,8 +126,8 @@ public class UserService : IUserService
       Password = hashedPassword,
       RefreshToken = null,
       RefreshTokenExpiryTime = null,
-      CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-      UpdatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+      CreatedAt = DateTime.UtcNow,
+      UpdatedAt = DateTime.UtcNow
     };
 
     _context.Users.Add(user);
