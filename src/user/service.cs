@@ -28,11 +28,11 @@ public class UserService : IUserService
       .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
 
     if (user == null)
-      return null;
+      throw new UnauthorizedAccessException("Invalid email or password");
 
     var IsValidPassword = await _hashPassword.VerifyPasswordAsync(loginRequest.Password, user.Password);
     if (!IsValidPassword)
-      return null;
+      throw new UnauthorizedAccessException("Invalid email or password");
 
     var accessToken = _jwtService.GenerateAccessToken(user);
     var refreshToken = _jwtService.GenerateRefreshToken();
@@ -69,10 +69,13 @@ public class UserService : IUserService
   public async Task<TokenResponse?> RefreshTokenAsync(string refreshToken)
   {
     var user = await _context.Users
-      .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+    .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
-    if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-      return null;
+    if (user == null)
+      throw new UnauthorizedAccessException("Invalid refresh token");
+
+    if (user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+      throw new UnauthorizedAccessException("Refresh token has expired");
 
     var newAccessToken = _jwtService.GenerateAccessToken(user);
     var newRefreshToken = _jwtService.GenerateRefreshToken();
@@ -108,10 +111,10 @@ public class UserService : IUserService
 
   public async Task<UserResponse> CreateUserAsync(CreateUserRequest createUserDto)
   {
-    // if (await EmailExistsAsync(createUserDto.Email))
-    // {
-    //   throw new InvalidOperationException("Email already exists");
-    // }
+    if (await EmailExistsAsync(createUserDto.Email))
+    {
+      throw new InvalidOperationException("Email already exists");
+    }
     if (!_hashPassword.IsValidPassword(createUserDto.Password))
     {
       throw new InvalidOperationException("Password must contain at least 8 characters with uppercase, lowercase, and numbers");

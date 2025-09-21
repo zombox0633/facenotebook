@@ -70,7 +70,7 @@ public class ErrorHandlerMiddleware
 
             // Authentication and Authorization
             UnauthorizedAccessException =>
-                (HttpStatusCode.Unauthorized, "Authentication required."),
+                (HttpStatusCode.Unauthorized, exception.Message),
 
             // Access/Permission Errors
             System.Security.SecurityException =>
